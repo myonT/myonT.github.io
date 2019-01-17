@@ -1,0 +1,475 @@
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="googleSheets.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=M+PLUS+Rounded+1c|Righteous" rel="stylesheet">
+    <!-- 1. ここにP5.jsを読み込む -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.2/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.2/addons/p5.dom.min.js"></script>
+    <script src="https://unpkg.com/ml5@0.1.1/dist/ml5.min.js">
+
+
+    </script>
+    <link href="https://fonts.googleapis.com/css?family=M+PLUS+1p" rel="stylesheet">
+
+    <style type="text/css">
+        #contens {
+            width: 650px;
+        }
+        
+        #tab1 {
+            background: #e6c9ca;
+            border: solid 2px #b16c90;
+            width: 70px;
+            height: 30px;
+        }
+        
+        #count_pos {
+            float: right;
+            margin-right: 30px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+    <!-- 2.以下にsetup関数とdraw関数を定義 -->
+    <script>
+        let video;
+        let poseNet;
+        let poses = [];
+        let skeletons = [];
+
+        var x1, x2, x3, y1, y2, y3;
+        var n0 = [0, 0];
+        var n1 = [0, 0];
+        var n2 = [0, 0];
+        var n3 = [0, 0];
+        var n4 = [0, 0];
+
+        var notetime = [];
+        var notepos = [];
+
+        var timer = 0;
+        var timerID;
+
+        var node = [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+            [5, 0],
+            [6, 0],
+            [7, 0],
+            [8, 0],
+            [9, 0],
+            [10, 0],
+            [11, 0],
+            [12, 0],
+            [13, 0],
+            [14, 0],
+            [15, 0],
+            [16, 0],
+            [17, 0],
+            [18, 0],
+            [19, 0],
+            [20, 0],
+            [21, 0],
+            [22, 0],
+            [23, 0],
+            [24, 0],
+            [25, 0],
+            [26, 0],
+            [27, 0],
+            [28, 0],
+            [29, 0],
+            [30, 0],
+            [31, 0]
+        ];
+
+        var elipsex1, elipsey1, elipsex2, elipsey2, elipsex3, elipsey3, elipsex4, elipsey4 = 0;
+        var gamestart = false;
+        var time_ID;
+        var i = 0;
+        var outn1 = false;
+        var count = 0;
+        var keypoint_c;
+        var keypoint_cl;
+        var n_count = false;
+        var wallimg;
+        var catimg1, catimg2, catimg3, catimg4;
+
+        /* global $ loadSheets */
+        $(function() {
+            var audioBtn = $('.audio_button'),
+                audioWrap = $('.audio_wrap'),
+                audio = document.getElementById('audio');
+
+            $("#tab1").on("click", data1);
+
+            async function data1() {
+
+                let data = await loadSheets('nodesheets!A1:J100');
+
+                x1 = data.values[0][0];
+                x2 = data.values[0][1];
+                x3 = data.values[0][4];
+                y1 = data.values[0][2];
+                y2 = data.values[0][3];
+                y3 = data.values[0][5];
+
+                n0 = [x3, y3]; //中心
+                n1 = [x1, y1]; //のーつ１
+                n2 = [x2, y1]; //のーつ２
+                n3 = [x1, y2]; //のーつ３
+                n4 = [x2, y2]; //のーつ４
+
+                node = [
+                    [data.values[2][0], data.values[2][1]], //0
+                    [data.values[3][0], data.values[3][1]], //1
+                    [data.values[4][0], data.values[4][1]], //2
+                    [data.values[5][0], data.values[5][1]], //3
+                    [data.values[6][0], data.values[6][1]], //4
+                    [data.values[7][0], data.values[7][1]], //5
+                    [data.values[8][0], data.values[8][1]], //6
+                    [data.values[9][0], data.values[9][1]], //7
+                    [data.values[10][0], data.values[10][1]], //8
+                    [data.values[11][0], data.values[11][1]], //9
+                    [data.values[12][0], data.values[12][1]], //10
+                    [data.values[13][0], data.values[13][1]], //11
+                    [data.values[14][0], data.values[14][1]], //12
+                    [data.values[15][0], data.values[15][1]], //13
+                    [data.values[16][0], data.values[16][1]], //14
+                    [data.values[17][0], data.values[17][1]], //15
+                    [data.values[18][0], data.values[18][1]], //16
+                    [data.values[19][0], data.values[19][1]], //17
+                    [data.values[20][0], data.values[20][1]], //18
+                    [data.values[21][0], data.values[21][1]], //19
+                    [data.values[22][0], data.values[22][1]], //20
+                    [data.values[23][0], data.values[23][1]], //21
+                    [data.values[24][0], data.values[24][1]], //22
+                    [data.values[25][0], data.values[25][1]], //23
+                    [data.values[26][0], data.values[26][1]], //24
+                    [data.values[27][0], data.values[27][1]], //25
+                    [data.values[28][0], data.values[28][1]], //26
+                    [data.values[29][0], data.values[29][1]], //27
+                    [data.values[30][0], data.values[30][1]], //28
+                    [data.values[31][0], data.values[31][1]] //29
+                    //[data.values[32][0], data.values[32][1]] //30
+                ];
+
+                if (audioWrap.hasClass('play')) {
+                    audio.pause();
+                    audioWrap.removeClass('play');
+                } else {
+                    audio.play();
+                    audioWrap.addClass('play');
+                }
+
+                start_timer();
+
+                elipsex1 = parseInt(n0[0]);
+                elipsex2 = parseInt(n0[0]);
+                elipsex3 = parseInt(n0[0]);
+                elipsex4 = parseInt(n0[0]);
+                elipsey1 = parseInt(n0[1]);
+                elipsey2 = parseInt(n0[1]);
+                elipsey3 = parseInt(n0[1]);
+                elipsey4 = parseInt(n0[1]);
+
+                gamestart = true;
+
+            }
+
+            function start_timer() {
+                timerID = setInterval(count_up, 1000);
+            }
+
+            function count_up() {
+                timer++;
+            }
+        });
+
+
+
+        function setup() {
+            createCanvas(640, 480);
+            video = createCapture(VIDEO);
+            video.size(width, height);
+            poseNet = ml5.poseNet(video, modelReady);
+            poseNet.on('pose', function(results) {
+                poses = results;
+            });
+            video.hide();
+            wallimg = loadImage("wall.jpg");
+            catimg1 = loadImage("cat_img.png");
+            catimg2 = loadImage("cat_img2.png");
+            catimg3 = loadImage("cat_img3.png");
+            catimg4 = loadImage("cat_img4.png");
+        }
+
+        function modelReady() {
+            //select('#status').html('Model Loaded');
+        }
+
+        function draw() {
+            scale(-1, 1);
+            image(wallimg, -640, 0, 700, 480);
+            //image(video, 0, 0, -width, height);
+            if (gamestart == true) { //ノードが動くところ
+                //stroke(255, 255, 255);
+                //fill(0, 0, 255); //あお
+                image(catimg1, n1[0] - 50, n1[1], 50, 50);
+                image(catimg2, n2[0], n2[1], 50, 50);
+                image(catimg3, n3[0] - 50, n3[1] - 50, 50, 50);
+                image(catimg4, n4[0], n4[1] - 50, 50, 50);
+                //ellipse(n4[0], n4[1], 50, 50);
+
+                fill(255, 255, 255, 80);
+                ellipse(n0[0], n0[1], 50, 50);
+
+
+                //-------まとめたかった------------//
+                if (node[0][0] == timer) sousa(node[0][1]);
+                if (node[1][0] == timer) sousa(node[1][1]);
+                if (node[2][0] == timer) sousa(node[2][1]);
+                if (node[3][0] == timer) sousa(node[3][1]);
+                if (node[4][0] == timer) sousa(node[4][1]);
+                if (node[5][0] == timer) sousa(node[5][1]);
+                if (node[6][0] == timer) sousa(node[6][1]);
+                if (node[7][0] == timer) sousa(node[7][1]);
+                if (node[8][0] == timer) sousa(node[8][1]);
+                if (node[9][0] == timer) sousa(node[9][1]);
+                if (node[10][0] == timer) sousa(node[10][1]);
+                if (node[11][0] == timer) sousa(node[11][1]);
+                if (node[12][0] == timer) sousa(node[12][1]);
+                if (node[13][0] == timer) sousa(node[13][1]);
+                if (node[14][0] == timer) sousa(node[14][1]);
+                if (node[15][0] == timer) sousa(node[15][1]);
+                if (node[16][0] == timer) sousa(node[16][1]);
+                if (node[17][0] == timer) sousa(node[17][1]);
+                if (node[18][0] == timer) sousa(node[18][1]);
+                if (node[19][0] == timer) sousa(node[19][1]);
+                if (node[20][0] == timer) sousa(node[20][1]);
+                if (node[21][0] == timer) sousa(node[21][1]);
+                if (node[22][0] == timer) sousa(node[22][1]);
+                if (node[23][0] == timer) sousa(node[23][1]);
+                if (node[24][0] == timer) sousa(node[24][1]);
+                if (node[25][0] == timer) sousa(node[25][1]);
+                if (node[26][0] == timer) sousa(node[26][1]);
+                if (node[27][0] == timer) sousa(node[27][1]);
+                if (node[28][0] == timer) sousa(node[28][1]);
+                if (node[29][0] == timer) {
+                    audio.pause();
+                    gamestart = false;
+                }
+
+                pointcount();
+
+                document.getElementById("count_pos").innerText = "Point:" + count;
+            }
+
+            drawKeypoints();
+            drawSkeleton();
+            if (node[29][0] <= timer && gamestart == false) {
+
+                drawresults();
+            }
+        }
+
+        function drawresults() {
+            fill(231, 202, 202, 204);
+            noStroke();
+            rect(-60, 90, -510, 300);
+            fill(0); //塗色を設定する
+            scale(-1, 1);
+            textSize(100);
+            fill(178, 109, 145);
+            text("Point:" + count, 125, 270);
+            scale(1, 1);
+        }
+
+        function pointcount() {
+            for (let i = 0; i < poses.length; i++) {
+                keypoint_c = poses[i].pose.keypoints[10];
+                keypoint_cl = poses[i].pose.keypoints[9];
+                var dis1 = sqrt((-640 + keypoint_c.position.x - elipsex1) * (-640 + keypoint_c.position.x - elipsex1) + (keypoint_c.position.y - elipsey1) * (keypoint_c.position.y - elipsey1));
+                var dis2 = sqrt((-640 + keypoint_c.position.x - elipsex2) * (-640 + keypoint_c.position.x - elipsex2) + (keypoint_c.position.y - elipsey2) * (keypoint_c.position.y - elipsey2));
+                var dis3 = sqrt((-640 + keypoint_c.position.x - elipsex3) * (-640 + keypoint_c.position.x - elipsex3) + (keypoint_c.position.y - elipsey3) * (keypoint_c.position.y - elipsey3));
+                var dis4 = sqrt((-640 + keypoint_c.position.x - elipsex4) * (-640 + keypoint_c.position.x - elipsex4) + (keypoint_c.position.y - elipsey4) * (keypoint_c.position.y - elipsey4));
+
+                var dis5 = sqrt((-640 + keypoint_cl.position.x - elipsex1) * (-640 + keypoint_cl.position.x - elipsex1) + (keypoint_cl.position.y - elipsey1) * (keypoint_cl.position.y - elipsey1));
+                var dis6 = sqrt((-640 + keypoint_cl.position.x - elipsex2) * (-640 + keypoint_cl.position.x - elipsex2) + (keypoint_cl.position.y - elipsey2) * (keypoint_cl.position.y - elipsey2));
+                var dis7 = sqrt((-640 + keypoint_cl.position.x - elipsex3) * (-640 + keypoint_cl.position.x - elipsex3) + (keypoint_cl.position.y - elipsey3) * (keypoint_c.position.y - elipsey3));
+                var dis8 = sqrt((-640 + keypoint_cl.position.x - elipsex4) * (-640 + keypoint_cl.position.x - elipsex4) + (keypoint_cl.position.y - elipsey4) * (keypoint_c.position.y - elipsey4));
+
+                //console.log("dis1" + dis1 + "dis2" + dis2 + "dis3" + dis3 + "dis3" + dis3 + "dis4" + dis4);
+                //console.log("dis5" + dis5 + "dis6" + dis6 + "dis7" + dis7 + "dis8" + dis8 + "dis8" + dis8);
+
+                if (-640 + keypoint_c.position.x < -100 || -640 + keypoint_cl.position.x < -100) {
+                    if (keypoint_c.position.y < 100 || keypoint_cl.position.y < 100) {
+                        //console.log("2");
+                        //2 ゾーン //2
+                        //if (dis2 <= 100 && n_count == false || dis6 <= 100 && n_count == false) {
+                        if (dis1 <= 100 && n_count == false || dis2 <= 100 && n_count == false || dis3 <= 100 && n_count == false || dis4 <= 100 && n_count == false || dis5 <= 100 && n_count == false || dis6 <= 100 && n_count == false || dis7 <= 100 && n_count == false || dis8 <= 100 && n_count == false) {
+                            count++;
+                            n_count = true;
+                            break;
+                        }
+                    } else if (keypoint_c.position.y >= 380 || keypoint_cl.position.y >= 380) {
+                        //3 のゾーン
+                        //console.log("3");
+                        //if (dis3 <= 100 && n_count == false || dis7 <= 100 && n_count == false) {
+                        if (dis1 <= 100 && n_count == false || dis2 <= 100 && n_count == false || dis3 <= 100 && n_count == false || dis4 <= 100 && n_count == false || dis5 <= 100 && n_count == false || dis6 <= 100 && n_count == false || dis7 <= 100 && n_count == false || dis8 <= 100 && n_count == false) {
+                            count++;
+                            n_count = true;
+                            break;
+                        }
+                    }
+                } else if (-640 + keypoint_c.position.x >= -540 || -640 + keypoint_cl.position.x >= -540) {
+                    if (keypoint_c.position.y < 100 || keypoint_cl.position.y < 100) {
+                        // 1 のゾーン
+                        //console.log("1"); //1
+                        //if (dis1 <= 100 && n_count == false || dis5 <= 100 && n_count == false) {
+                        if (dis1 <= 100 && n_count == false || dis2 <= 100 && n_count == false || dis3 <= 100 && n_count == false || dis4 <= 100 && n_count == false || dis5 <= 100 && n_count == false || dis6 <= 100 && n_count == false || dis7 <= 100 && n_count == false || dis8 <= 100 && n_count == false) {
+                            count++;
+                            n_count = true;
+                            break;
+                        }
+                    } else if (keypoint_c.position.y >= 380 || keypoint_cl.position.y >= 380) {
+                        //4 のゾーン
+                        //console.log("4");
+                        //if (dis4 <= 100 && n_count == false || dis8 <= 100 && n_count == false) {
+                        if (dis1 <= 100 && n_count == false || dis2 <= 100 && n_count == false || dis3 <= 100 && n_count == false || dis4 <= 100 && n_count == false || dis5 <= 100 && n_count == false || dis6 <= 100 && n_count == false || dis7 <= 100 && n_count == false || dis8 <= 100 && n_count == false) {
+                            count++;
+                            n_count = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+        }
+
+        function sousa(i) {
+            if (i == "_n1()") {
+                _n1();
+            } else if (elipsex1 >= 40 || elipsey1 <= -30) {
+                elipsex1 = parseInt(n0[0]);
+                elipsey1 = parseInt(n0[1]);
+                n_count = false;
+            }
+            if (i == "_n2()") {
+                _n2();
+            } else if (elipsex2 <= -680 || elipsey2 <= -30) {
+                elipsex2 = parseInt(n0[0]);
+                elipsey2 = parseInt(n0[1]);
+                n_count = false;
+            }
+            if (i == "_n3()") {
+                _n3();
+            } else if (elipsex3 >= 40 || elipsey3 >= 520) {
+                elipsex3 = parseInt(n0[0]);
+                elipsey3 = parseInt(n0[1]);
+                n_count = false;
+            }
+            if (i == "_n4()") {
+                _n4();
+            } else if (elipsex4 <= -680 || elipsey4 >= 520) {
+                elipsex4 = parseInt(n0[0]);
+                elipsey4 = parseInt(n0[1]);
+                n_count = false;
+            }
+        }
+
+        function _n1() {
+            ellipse(elipsex1 += 8.2, elipsey1 -= 7, 50, 50);
+        }
+
+        function _n2() {
+            ellipse(elipsex2 -= 8.2, elipsey2 -= 7, 50, 50);
+        }
+
+        function _n3() {
+            ellipse(elipsex3 += 8.2, elipsey3 += 7, 50, 50);
+        }
+
+        function _n4() {
+            ellipse(elipsex4 -= 8.2, elipsey4 += 7, 50, 50);
+        }
+
+
+        // A function to draw ellipses over the detected keypoints
+        function drawKeypoints()  {
+
+            // Loop through all the poses detected
+            for (let i = 0; i < poses.length; i++) {
+                // For each pose detected, loop through all the keypoints
+                for (let j = 0; j < poses[i].pose.keypoints.length; j++) {
+                    // A keypoint is an object describing a body part (like rightArm or leftShoulder)
+                    let keypoint = poses[i].pose.keypoints[10];
+                    let keypointl = poses[i].pose.keypoints[9];
+                    //console.log(keypoint.position.x);
+
+                    // Only draw an ellipse is the pose probability is bigger than 0.2
+                    if (keypoint.score > 0.2) {
+                        fill(0, 0, 0);
+                        ellipse(-640 + keypoint.position.x, keypoint.position.y, 20, 20);
+                        ellipse(-640 + keypointl.position.x, keypointl.position.y, 20, 20);
+                    }
+                }
+            }
+        }
+
+        // A function to draw the skeletons
+        function drawSkeleton() {
+            //console.log("inn");
+            // Loop through all the skeletons detected
+            for (let i = 0; i < poses.length; i++) {
+                // For every skeleton, loop through all body connections
+                for (let j = 0; j < poses[i].skeleton.length; j++) {
+                    let partA = poses[i].pose.keypoints[6];
+                    let partB = poses[i].pose.keypoints[8];
+                    let partC = poses[i].pose.keypoints[10];
+
+                    let partD = poses[i].pose.keypoints[5];
+                    let partE = poses[i].pose.keypoints[7];
+                    let partF = poses[i].pose.keypoints[9];
+                    stroke(0, 0, 0);
+
+                    line(-640 + partA.position.x, partA.position.y, -640 + partB.position.x, partB.position.y);
+                    line(-640 + partB.position.x, partB.position.y, -640 + partC.position.x, partC.position.y);
+                    line(-640 + partA.position.x, partA.position.y, -640 + partD.position.x, partD.position.y);
+                    line(-640 + partD.position.x, partD.position.y, -640 + partE.position.x, partE.position.y);
+                    line(-640 + partE.position.x, partE.position.y, -640 + partF.position.x, partF.position.y);
+                }
+            }
+        }
+
+    </script>
+    <script async defer src="https://apis.google.com/js/api.js" onload="this.onload=function(){};handleClientLoad()" onreadystatechange="if (this.readyState === 'complete') this.onload()">
+
+
+    </script>
+
+    <div id="status"></div>
+    <div id="contens">
+        <!--        <div id="canvas"></div>-->
+        <div class="audio_wrap">
+            <div class="audio_button"></div>
+            <audio id="audio" src="2558.mp3" loop>
+        あなたのブラウザーは <code>audio</code> 要素をサポートしていません。</audio>
+        </div>
+        <input id="tab1" type="button" name="tab_btn" value="スタート">
+        <div id="count_pos"></div>
+
+    </div>
+
+
+</body>
+
+</html>

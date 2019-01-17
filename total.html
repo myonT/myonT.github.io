@@ -1,0 +1,125 @@
+<!--
+藤村先生
+大変申しわけないのですが、ブラケッツから開かないと画像読み込みの時点でエラーになってしまうようです。
+インライン表示あたりが怪しいのか、スライドとカメラが原因なのかかと思いますが修正に至りませんでした。
+どうぞ宜しくお願い致します。
+村山
+-->
+
+<html>
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>CatLife</title>
+    <link href="https://fonts.googleapis.com/css?family=M+PLUS+1p" rel="stylesheet">
+    <style type="text/css">
+        .wf-mplus1p {}
+        
+        h1 {
+            color: #b16c90;
+            animation: fadeIn 2.5s ease 0s 1 normal, pikopiko 2.5s ease 3s 3 normal;
+            */
+            /*名前、時間、変化率、どれだけ遅らせるか、くりかえるか、その処理*/
+        }
+        
+        @keyframes fadeIn {
+            0% {
+                opacity: 0
+            }
+            100% {
+                opacity: 1
+            }
+        }
+        
+        @keyframes pikopiko {
+            0% {
+                transform: translateX(0px)
+            }
+            20% {
+                transform: translateX(10px)
+            }
+            40% {
+                transform: translateX(0px)
+            }
+            60% {
+                transform: translateX(10px)
+            }
+            80% {
+                transform: translateX(0px)
+            }
+        }
+        
+        #contens {
+            height: 100%;
+            background: #e6c9ca;
+            text-align: center;
+            font-family: "M PLUS 1p";
+        }
+        
+        #yomikomi {}
+        
+        iframe {
+            border: 2px #cc9aa8 solid;
+            background: #cc9aa8;
+        }
+        
+        .asobikata_box {
+            margin-top: 30px;
+        }
+        
+        .asobikata_box label {
+            padding: 10px;
+            width: 40px;
+            height: 20px;
+            border: solid 2px #b16c90;
+        }
+        
+        .asobikata_box label:hover {
+            background: #f8e7eb;
+        }
+        
+        .asobikata_box input {
+            display: none;
+        }
+        
+        .asobikata_box .hidden {
+            height: 0;
+            padding: 0px;
+            overflow: hidden;
+            opacity: 0;
+            transition: 1s;
+        }
+        
+        .asobikata_box input:checked~.hidden {
+            height: auto;
+            margin-top: 30px;
+            opacity: 1;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div id="contens">
+        <h1>CatLife</h1>
+        <div id="yomikomi">
+            <iframe src="googleSheets01.html" width="650px" height="530px"></iframe>
+        </div>
+        <div class="asobikata_box">
+            <label for="label1">遊び方</label>
+            <input type="checkbox" id="label1" />
+            <div class="hidden">
+                このゲームはカメラの前で腕を動かし、流れてくるノーツを捕まえるゲームです。<br> 腕の位置と、判定をする手首の位置は画面に表示されています。<br> スタートボタンを押すとゲームが始まります。
+            </div>
+        </div>
+
+    </div>
+</body>
+
+</html>
+
+
+</html>
